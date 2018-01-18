@@ -111,7 +111,10 @@ function initialize() {
         var polygonOptions = drawingManager.get('polygonOptions');
         polygonOptions.fillColor = polygons.generateColor();
         drawingManager.set('polygonOptions', polygonOptions);
-        managePolygon(polygons.add(event), "add", null);
+        var newID = managePolygon(polygons.add(event), "add", null);
+        // polygons.collection[newID].selected = true;
+        // showPolygonSelectBorder(newID);
+        // polygons.collection[newID].setOptions({strokeWeight: 5});
     });
     showEmptyRegionList();
     $('#find-intersections').click(function() {
@@ -197,11 +200,30 @@ function initialize() {
             }
         });
     });
+    $('#combine-regions').click(function() {
+        $.ajax({
+            type: "POST",
+            url: "/api/combine_regions",
+            success: function(data) {
+                if (data.success) {
+                    var newID = generateNewPolygon(data.data, null);
+                    deleteSelectedPolygons();
+                    // polygons.collection[newID].selected = true;
+                    // showPolygonSelectBorder(newID);
+                    // polygons.collection[newID].setOptions({strokeWeight: 5});
+                }
+            },
+            failure: function(data) {
+                console.log(data);
+            }
+        });
+    });
     $("#clear-regions").on("click", function(e) {
         polygons.clearAll();
         $("#region-list").empty();
         showEmptyRegionList();
         $("#clear-regions").addClass("hidden");
+        $("#combine-regions").addClass("hidden");
     });
 }
 
@@ -254,6 +276,7 @@ function managePolygon(polygonID, action, computation) {
             console.log(data);
         }
     });
+    return polygonID;
 }
 
 function addPolygonToList(polygonID, computation) {
@@ -291,6 +314,7 @@ function addPolygonToList(polygonID, computation) {
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
                 .attr("style", "margin: 1%; background-color: " + fillColor + ";")
                 .append($("<h4>").attr("style", "padding-bottom: 5%;").text("Region ID: " + polygonID + compName))
+                .append($("<input style='position: absolute; top: 0; right: 1%;' type='checkbox' disabled='disabled'>").attr("id", "checkbox-" + polygonID))
                 .append($("<button>").attr("id", "show-hide-" + polygonID).attr("class", "btn btn-default col-md-5 mobile-device ignore-click").attr("style", "padding-bottom: 1%").text("Hide"))
                 .append($("<div>").attr("class", "col-md-2"))
                 .append($("<button>").attr("id", "delete-" + polygonID).attr("class", "btn btn-danger col-md-5 mobile-device ignore-click").text("Delete"))
@@ -299,13 +323,14 @@ function addPolygonToList(polygonID, computation) {
     $("#show-hide-" + polygonID).on("click", function(e) {
         var polygon = polygons.collection[polygonID];
         showHidePolygonButton(this, polygon);
-    })
+    });
     $("#delete-" + polygonID).on("click", function(e) {
         var polygonID = $(this).parent().attr("id");
         var polygon = polygons.collection[polygonID];
         deletePolygonButton(this, polygon);
-    })
+    });
     $("#clear-regions").removeClass("hidden");
+    $("#combine-regions").removeClass("hidden");
     $("#" + polygonID).on("click", function(e) {
         if (!$(e.target).hasClass("ignore-click"))
             handlePolygonSelect(polygonID);
@@ -374,12 +399,15 @@ function bindInterpolatedChange(polygonID, checked) {
 function handlePolygonSelect(polygonID) {
     if (polygons.collection[polygonID].visible) {
         polygons.collection[polygonID].selected = !polygons.collection[polygonID].selected;
+        var checkbox = $('#checkbox-'+polygonID);
         if (polygons.collection[polygonID].selected) {
             showPolygonSelectBorder(polygonID);
             polygons.collection[polygonID].setOptions({strokeWeight: 5});
+            checkbox.prop("checked", true)
         } else {
             clearPolygonSelectBorder(polygonID);
             polygons.collection[polygonID].setOptions({strokeWeight: 3});
+            checkbox.prop("checked", false)
         }
         managePolygon(polygonID, "select", null);
     }
@@ -411,6 +439,7 @@ function deletePolygonButton(button, polygon) {
     if (!$("#region-list").children().length) {
         showEmptyRegionList();
         $("#clear-regions").addClass("hidden");
+        $("#combine-regions").addClass("hidden");
     }
 }
 
@@ -518,6 +547,24 @@ function handleContextMenu(event, polygon) {
             }
         }
       });
+}
+
+function deleteSelectedPolygons(){
+    for (polygonID in polygons.collection) {
+        if (polygons.collection[polygonID].visible) {
+            if (polygons.collection[polygonID].selected) {
+                polygons.collection[polygonID].interpolatedRegionID = 0;
+                var button = "#delete-" + polygonID;
+                $(button).parent().remove();
+                polygons.delete(polygons.collection[polygonID]);
+                managePolygon(polygonID, "delete");
+            }
+        }
+    }
+    $.ajax({
+        type: "GET",
+        url: "/"
+    });
 }
 
 function clearSession() {

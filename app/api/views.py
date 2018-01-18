@@ -135,6 +135,32 @@ def find_unions():
             {"success": False, "data": "No common union"})
 
 
+@api.route("/combine_regions", methods=["POST"])
+def combine_regions():
+    """
+    The user has started the process combination (unions). The helper function is
+    called to go through each region and see what other regions it unions
+    with. Any regions that were combined are removed from the stored regions.
+
+    Returns:
+        The hseg list of the combination (unions).
+    """
+    regions = [region for region in session[
+        "regions"] if (region.get("selected") and region.get("visible"))]
+    if len(regions) > 1:
+        union = process_unions(regions)
+    else:
+        return jsonify(
+            {"success": False, "data": "Not enough regions selected"})
+    if union:
+        session["regions"] = [region for region in session[
+            "regions"] if not (region.get("selected") and region.get("visible"))]
+        return jsonify({"success": True, "data": hseg_to_coords(union)})
+    else:
+        return jsonify(
+            {"success": False, "data": "No common union"})
+
+
 @api.route("/find_difference", methods=["POST"])
 def find_difference():
     """
