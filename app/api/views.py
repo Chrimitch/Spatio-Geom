@@ -24,6 +24,7 @@ def manage_region():
         region = {
             "id": data.get("id"),
             "region": process_polygons(data.get("path")),
+            "path": data.get("path"),
             "visible": True,
             "computation": data.get("computation"),
             "selected": False
@@ -145,16 +146,35 @@ def combine_regions():
     Returns:
         The hseg list of the combination (unions).
     """
+
+    # region = {
+    #     "id": data.get("id"),
+    #     "region": process_polygons(data.get("path")),
+    #     "visible": True,
+    #     "computation": data.get("computation"),
+    #     "selected": False
+    # }
+    # if not session.get("regions"):
+    #     session["regions"] = []
+    # session["regions"].append(region)
+
     regions = [region for region in session[
         "regions"] if (region.get("selected") and region.get("visible"))]
     if len(regions) > 1:
-        union = process_unions(regions)
+        paths = []
+        for reg in regions:
+            for path in reg.get('path'):
+                paths.append(path)
+        union = process_polygons(paths)
+        print "union:\n"
+        # union = process_unions(regions)
     else:
         return jsonify(
             {"success": False, "data": "Not enough regions selected"})
     if union:
         session["regions"] = [region for region in session[
             "regions"] if not (region.get("selected") and region.get("visible"))]
+        print hseg_to_coords(union)
         return jsonify({"success": True, "data": hseg_to_coords(union)})
     else:
         return jsonify(

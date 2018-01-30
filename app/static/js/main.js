@@ -2,6 +2,7 @@ var map;
 var polygons = {
     collection: {},
     add: function(e) {
+        console.log(e.overlay);
         return polygons.newPolygon(e.overlay);
     },
     hide: function(polygon) {
