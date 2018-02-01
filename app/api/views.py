@@ -273,7 +273,6 @@ def find_interoplated_regions():
     else:
         return jsonify(
             {"success": False, "data": "No common difference"})
-    return jsonify({"success": True})
 
 
 @api.route("/find_region_at_time", methods=["POST"])
@@ -286,8 +285,7 @@ def find_region_at_time():
     interval_region = region[0]["interval_region"]
     valid_interval_region = None
     for max_time in interval_region:
-        if (int(time) <= int(max_time) and
-                int(time) >= int(interval_region[max_time]["min_time"])):
+        if int(max_time) >= int(time) >= int(interval_region[max_time]["min_time"]):
             valid_interval_region = interval_region[max_time]["interval_tuple"]
     found_region = process_interval_region_at_time(valid_interval_region, time)
     if found_region:
