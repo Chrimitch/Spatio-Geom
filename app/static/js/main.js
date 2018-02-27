@@ -1,9 +1,9 @@
 var map;
 var polygons = {
     collection: {},
-    add: function(e) {
-        console.log(e.overlay);
-        return polygons.newPolygon(e.overlay);
+    add: function(overlay) {
+        console.log(overlay);
+        return polygons.newPolygon(overlay);
     },
     hide: function(polygon) {
         polygon.visible = false;
@@ -32,7 +32,7 @@ var polygons = {
     newPolygon: function(poly, polyID, is3D, start, end) {
         if (polyID == null)
             polyID = 0;
-        var shape = poly, that = this;
+        var shape = poly;
         shape.type = "polygon";
         shape.path = poly.getPaths();
         shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
@@ -110,13 +110,16 @@ function initialize() {
     drawingManager.setMap(map);
     google.maps.event.addListener(drawingManager, "overlaycomplete", function(event) {
         var polygonOptions = drawingManager.get('polygonOptions');
+        console.log("event: ");
+        console.log(event);
         polygonOptions.fillColor = polygons.generateColor();
         drawingManager.set('polygonOptions', polygonOptions);
-        var newID = managePolygon(polygons.add(event), "add", null);
+        var newID = managePolygon(polygons.add(event.overlay), "add", null);
         // polygons.collection[newID].selected = true;
         // showPolygonSelectBorder(newID);
         // polygons.collection[newID].setOptions({strokeWeight: 5});
     });
+
     showEmptyRegionList();
     $('#find-intersections').click(function() {
         $.ajax({
@@ -226,6 +229,48 @@ function initialize() {
         $("#clear-regions").addClass("hidden");
         $("#combine-regions").addClass("hidden");
     });
+    $("#import-regions").on("change", function(e) {
+        var files = e.target.files;
+        if (files.length) {
+            for (var i = 0, file; file = files[i]; i++) {
+                // Code to execute for every file selected
+                console.log(file.name);
+                console.log(file.type);
+                console.log(file.size + " bytes");
+                // map.data.loadGeoJson(file.webkitRelativePath);
+                var r = new FileReader();
+                r.onload = function (evt) {
+                    var contents = evt.target.result;
+                    var jsonContents = JSON.parse(contents);
+                    map.data.addGeoJson(jsonContents);
+
+                    map.data.forEach(function(feature){
+                        feature.getGeometry().forEachLatLng(function(latLong){
+                            // console.log("latlong: ");
+                            // console.log(latLong);
+                        });
+                        // console.log("feature: ");
+                        // console.log(feature);
+                        console.log("geometry: ");
+                        console.log(feature.getGeometry().getArray());
+
+
+                        // var polygonOptions = drawingManager.get('polygonOptions');
+                        // polygonOptions.fillColor = polygons.generateColor();
+                        // drawingManager.set('polygonOptions', polygonOptions);
+                        // var newID = managePolygon(polygons.add(feature), "add", null);
+                    });
+                };
+                r.readAsText(file);
+            }
+            // Code to execute after that
+            this.value = null;
+            return false;
+        } else {
+            this.value = null;
+            return false;
+        }
+    });
 }
 
 function managePolygon(polygonID, action, computation) {
@@ -234,6 +279,8 @@ function managePolygon(polygonID, action, computation) {
         for (var singlePath in polygons.collection[polygonID].path.getArray()) {
             paths.push(polygons.collection[polygonID].path.getArray()[singlePath].getArray());
         }
+        console.log(">>>");
+        console.log(paths);
         data = JSON.stringify(
             {
                 "id": polygonID,
