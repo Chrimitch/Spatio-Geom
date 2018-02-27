@@ -245,14 +245,21 @@ function initialize() {
                     map.data.addGeoJson(jsonContents);
 
                     map.data.forEach(function(feature){
-                        feature.getGeometry().forEachLatLng(function(latLong){
-                            // console.log("latlong: ");
-                            // console.log(latLong);
+                        console.log("New shape >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                        var geometry = feature.getGeometry();
+                        var latLongArrayList = geometry.getArray();
+                        latLongArrayList.forEach(function(latLongArray){
+                            console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                            latLongArray.forEachLatLng(function(latLong){
+                                console.log(latLong.lat() + ", " + latLong.lng())
+                                // console.log("latlong: ");
+                                // console.log(latLong);
+                            });
                         });
                         // console.log("feature: ");
                         // console.log(feature);
-                        console.log("geometry: ");
-                        console.log(feature.getGeometry().getArray());
+                        // console.log("geometry: ");
+                        // console.log(feature.getGeometry().getArray());
 
 
                         // var polygonOptions = drawingManager.get('polygonOptions');
