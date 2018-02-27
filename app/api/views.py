@@ -31,6 +31,7 @@ def manage_region():
         }
         if not session.get("regions"):
             session["regions"] = []
+            session["selectedRegions"] = []
         session["regions"].append(region)
     elif data.get("action") == "visible":
         for region in session["regions"]:
@@ -40,9 +41,18 @@ def manage_region():
         for region in session["regions"]:
             if region.get("id") == int(data.get("id")):
                 region["selected"] = not region["selected"]
+                if not session.get("selected_regions"):
+                    session["selected_regions"] = []
+                if(region["selected"]):
+                    session["selected_regions"].append(region)
+                else:
+                    session["selected_regions"].remove(region)
+
     else:
         session["regions"] = [region for region in session[
             "regions"] if region.get("id") != int(data.get("id"))]
+        session["selected_regions"] = [region for region in session[
+            "selected_regions"] if region.get("id") != int(data.get("id"))]
     return jsonify({"success": True})
 
 
@@ -192,7 +202,7 @@ def find_difference():
         The hseg list of the differences.
     """
     regions = [region for region in session[
-        "regions"] if (region.get("selected") and region.get("visible"))]
+        "selected_regions"] if (region.get("selected") and region.get("visible"))]
     if len(regions) > 1:
         difference = process_difference(regions)
     else:
@@ -222,7 +232,7 @@ def find_interoplated_regions():
     start_time = data.get("startTime")
     end_time = data.get("endTime")
     regions = [region for region in session[
-        "regions"] if (region.get("selected") and region.get("visible"))]
+        "selected_regions"] if (region.get("selected") and region.get("visible"))]
     if len(regions) == 2:
         introplated = process_interpolate_regions(
             regions, start_time, end_time)
