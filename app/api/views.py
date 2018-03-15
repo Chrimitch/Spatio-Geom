@@ -43,7 +43,7 @@ def manage_region():
                 region["selected"] = not region["selected"]
                 if not session.get("selected_regions"):
                     session["selected_regions"] = []
-                if(region["selected"]):
+                if region["selected"]:
                     session["selected_regions"].append(region)
                 else:
                     session["selected_regions"].remove(region)
@@ -79,8 +79,7 @@ def restore_session():
         other list for the ID of the region.
     """
     if session.get("regions"):
-        regions_to_coords = {}
-        regions_to_coords["polygons"] = []
+        regions_to_coords = {"polygons": []}
         for region in session.get("regions"):
             coords_dict = {}
             hseg = hseg_to_coords(region["region"])
@@ -89,7 +88,7 @@ def restore_session():
             coords_dict["computation"] = region["computation"]
             coords_dict["visible"] = region["visible"]
             regions_to_coords["polygons"].append(coords_dict)
-            if(region["selected"]):
+            if region["selected"]:
                 region["selected"] = not region["selected"]
         return jsonify({"success": True, "data": regions_to_coords})
     else:
@@ -116,6 +115,10 @@ def find_intersections():
         return jsonify(
             {"success": False, "data": "Not enough regions selected"})
     if intersection:
+        print("hseg >>>>>>>>>>>>>>>>>>>>")
+        print(intersection)
+        print("coords >>>>>>>>>>>>>>>>>>")
+        print(hseg_to_coords(intersection))
         return jsonify({"success": True, "data": hseg_to_coords(intersection)})
     else:
         return jsonify(
@@ -171,7 +174,7 @@ def combine_regions():
     if union:
         session["regions"] = [region for region in session[
             "regions"] if not (region.get("selected") and region.get("visible"))]
-        # print hseg_to_coords(union)
+        print(hseg_to_coords(union))
         return jsonify({"success": True, "data": hseg_to_coords(union)})
     else:
         return jsonify(
@@ -203,8 +206,8 @@ def find_difference():
             {"success": False, "data": "No common difference"})
 
 
-@api.route("/find_interoplated_regions", methods=["POST"])
-def find_interoplated_regions():
+@api.route("/find_interpolated_regions", methods=["POST"])
+def find_interpolated_regions():
     """
     The user has started the process interpolate. The user passes a start and
     finish time for the regions. The selected regions are then interpolated.
@@ -221,17 +224,17 @@ def find_interoplated_regions():
     regions = [region for region in session[
         "selected_regions"] if (region.get("selected") and region.get("visible"))]
     if len(regions) == 2:
-        introplated = process_interpolate_regions(
+        interpolated = process_interpolate_regions(
             regions, start_time, end_time)
     else:
         return jsonify(
             {"success": False, "data": "Not enough regions selected"})
-    if introplated:
+    if interpolated:
         interval_regions = {}
         # More than one interval tuple can be returned for different time
         # segments. To make make sure we can quickly get the correct tuple the
         # keys will be the max time that interval tuple has.
-        for interval_tuple in introplated:
+        for interval_tuple in interpolated:
             if interval_tuple:
                 max_time = 0
                 min_time = None
@@ -259,9 +262,7 @@ def find_interoplated_regions():
             "3": seg2[2]
         }
         # This will merge the polygons int one polygon and store it.
-        paths = []
-        paths.append(seg1[2])
-        paths.append(seg2[2])
+        paths = [seg1[2], seg2[2]]
         regions[0]["region"] = process_polygons(paths)
         regions[1]["region"] = process_polygons(paths)
         regions[0]["computation"] = "Interpolated Regions"

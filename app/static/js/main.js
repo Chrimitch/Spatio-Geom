@@ -2,7 +2,7 @@ var map;
 var polygons = {
     collection: {},
     add: function(overlay) {
-        console.log(overlay);
+        // console.log(overlay);
         return polygons.newPolygon(overlay);
     },
     hide: function(polygon) {
@@ -110,8 +110,6 @@ function initialize() {
     drawingManager.setMap(map);
     google.maps.event.addListener(drawingManager, "overlaycomplete", function(event) {
         var polygonOptions = drawingManager.get('polygonOptions');
-        console.log("event: ");
-        console.log(event);
         polygonOptions.fillColor = polygons.generateColor();
         drawingManager.set('polygonOptions', polygonOptions);
         var newID = managePolygon(polygons.add(event.overlay), "add", null);
@@ -177,7 +175,7 @@ function initialize() {
         );
         $.ajax({
             type: "POST",
-            url: "/api/find_interoplated_regions",
+            url: "/api/find_interpolated_regions",
             data: {"data": data},
             success: function(data) {
                 if (data.success) {
@@ -212,9 +210,6 @@ function initialize() {
                 if (data.success) {
                     var newID = generateNewPolygon(data.data, null);
                     deleteSelectedPolygons();
-                    // polygons.collection[newID].selected = true;
-                    // showPolygonSelectBorder(newID);
-                    // polygons.collection[newID].setOptions({strokeWeight: 5});
                 }
             },
             failure: function(data) {
@@ -234,39 +229,35 @@ function initialize() {
         if (files.length) {
             for (var i = 0, file; file = files[i]; i++) {
                 // Code to execute for every file selected
-                console.log(file.name);
-                console.log(file.type);
-                console.log(file.size + " bytes");
-                // map.data.loadGeoJson(file.webkitRelativePath);
+                // console.log(file.name);
+                // console.log(file.type);
+                // console.log(file.size + " bytes");
                 var r = new FileReader();
                 r.onload = function (evt) {
                     var contents = evt.target.result;
                     var jsonContents = JSON.parse(contents);
-                    map.data.addGeoJson(jsonContents);
-
+                    var features = map.data.addGeoJson(jsonContents);
                     map.data.forEach(function(feature){
-                        console.log("New shape >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                        var shapeArray = [];
+                        // console.log("New shape >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                         var geometry = feature.getGeometry();
                         var latLongArrayList = geometry.getArray();
                         latLongArrayList.forEach(function(latLongArray){
-                            console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                            // console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                            var cycleArray = [];
                             latLongArray.forEachLatLng(function(latLong){
-                                console.log(latLong.lat() + ", " + latLong.lng())
-                                // console.log("latlong: ");
-                                // console.log(latLong);
+                                var latLongDict = {};
+                                latLongDict.lat = latLong.lat();
+                                latLongDict.lng = latLong.lng();
+                                // console.log(latLong.lat() + ", " + latLong.lng());
+                                cycleArray.push(latLongDict)
                             });
+                            shapeArray.push(cycleArray)
                         });
-                        // console.log("feature: ");
-                        // console.log(feature);
-                        // console.log("geometry: ");
-                        // console.log(feature.getGeometry().getArray());
-
-
-                        // var polygonOptions = drawingManager.get('polygonOptions');
-                        // polygonOptions.fillColor = polygons.generateColor();
-                        // drawingManager.set('polygonOptions', polygonOptions);
-                        // var newID = managePolygon(polygons.add(feature), "add", null);
+                        generateNewPolygon(shapeArray)
                     });
+                    for (var j = 0; j < features.length; j++)
+                        map.data.remove(features[j]);
                 };
                 r.readAsText(file);
             }
@@ -286,8 +277,6 @@ function managePolygon(polygonID, action, computation) {
         for (var singlePath in polygons.collection[polygonID].path.getArray()) {
             paths.push(polygons.collection[polygonID].path.getArray()[singlePath].getArray());
         }
-        console.log(">>>");
-        console.log(paths);
         data = JSON.stringify(
             {
                 "id": polygonID,
