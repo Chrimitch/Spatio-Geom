@@ -242,16 +242,20 @@ function initialize() {
                         // console.log("New shape >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                         var geometry = feature.getGeometry();
                         var latLongArrayList = geometry.getArray();
+                        var counter = 0;
                         latLongArrayList.forEach(function(latLongArray){
+                            counter++;
                             // console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                             var cycleArray = [];
                             latLongArray.forEachLatLng(function(latLong){
                                 var latLongDict = {};
                                 latLongDict.lat = latLong.lat();
                                 latLongDict.lng = latLong.lng();
-                                // console.log(latLong.lat() + ", " + latLong.lng());
                                 cycleArray.push(latLongDict)
                             });
+                            if (counter % 2 === 0) {
+                                cycleArray = cycleArray.reverse()
+                            }
                             shapeArray.push(cycleArray)
                         });
                         generateNewPolygon(shapeArray)
@@ -392,7 +396,7 @@ function bindInterpolatedChange(polygonID, checked) {
                 }
             );
             var polygon = polygons.collection[polygonID];
-            if (polygon.interpolatedRegionID != 0) {
+            if (polygon.interpolatedRegionID !== 0) {
                 var button = "#delete-" + polygon.interpolatedRegionID;
                 $(button).parent().remove();
                 if (!$("#region-list").children().length) {
