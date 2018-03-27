@@ -258,7 +258,7 @@ function initialize() {
                             }
                             shapeArray.push(cycleArray)
                         });
-                        generateNewPolygon(shapeArray)
+                        generateNewPolygon(shapeArray,null)
                     });
                     for (var j = 0; j < features.length; j++)
                         map.data.remove(features[j]);
