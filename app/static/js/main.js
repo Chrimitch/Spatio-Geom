@@ -35,7 +35,7 @@ var polygons = {
         var shape = poly;
         shape.type = "polygon";
         shape.path = poly.getPaths();
-        console.log(poly.getPaths());
+        // console.log(poly.getPaths());
         shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
         shape.selected = false;
         shape.visible = true;
@@ -241,29 +241,34 @@ function initialize() {
                         var type = geometry.getType();
                         if (type === "MultiPolygon") {
                             var polyList = geometry.getArray();
+                            var latLongArrayList = [];
                             for (var list in polyList) {
-                                var latLongArrayList = polyList[list].getArray();
-                                var counter = 0;
-                                var array = [];
-                                latLongArrayList.forEach(function(latLongArray){
-                                    counter++;
-                                    // console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                                    var cycleArray = [];
-                                    latLongArray.forEachLatLng(function(latLong){
-                                        var latLongDict = {};
-                                        latLongDict.lat = latLong.lat();
-                                        latLongDict.lng = latLong.lng();
-                                        console.log(latLongDict);
-                                        cycleArray.push(latLongDict)
-                                    });
-                                    if (counter % 2 === 0) {
-                                        cycleArray = cycleArray.reverse()
-                                    }
-                                    array.push(cycleArray)
-                                });
-                                shapeArray.push(array);
+                                var arrList = polyList[list].getArray();
+                                for (var arr in arrList) {
+                                    latLongArrayList.push(arrList[arr]);
+                                }
                             }
+                            var counter = 0;
+                            var array = [];
+                            latLongArrayList.forEach(function(latLongArray){
+                                counter++;
+                                // console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                                var cycleArray = [];
+                                latLongArray.forEachLatLng(function(latLong){
+                                    var latLongDict = {};
+                                    latLongDict.lat = latLong.lat();
+                                    latLongDict.lng = latLong.lng();
+                                    // console.log(latLongDict);
+                                    cycleArray.push(latLongDict)
+                                });
+                                if (counter % 2 === 0) {
+                                    cycleArray = cycleArray.reverse()
+                                }
+                                array.push(cycleArray);
+                            });
+                            shapeArray.push(array);
                             for (var shape in shapeArray) {
+                                console.log("eieiooooooooo");
                                 console.log(shapeArray[shape]);
                                 generateNewPolygon(shapeArray[shape], null)
                             }
@@ -561,45 +566,22 @@ function generateNewPolygon(polygonCoords, computation, restoreID, startTime, en
      * new polygon isn't new, it is already in the session and we know an ID to
      * give it. This avoids duplicate regions in session.
      */
-        // TODO: change this to remove the MultiPolygon junk
-    var isMultiPolygon = computation === "MultiPolygon";
     var poly;
     var allPolygons = new Array();
-    if (isMultiPolygon){
-        for (var polygonCoordsIndex in polygonCoords) {
-            var outerArray = new Array();
-            for (var i = 0; i < polygonCoords[polygonCoordsIndex].length; i++) {
-                var arr = new Array();
-                for (var j = 0; j < polygonCoords[polygonCoordsIndex][i].length; j++) {
-                    arr.push(new google.maps.LatLng(polygonCoords[polygonCoordsIndex][i][j].lat, polygonCoords[polygonCoordsIndex][i][j].lng));
-                }
-                outerArray.push(arr);
-            }
-            allPolygons.push(arr);
+    for (var polygon in polygonCoords) {
+        var arr = new Array();
+        for (var i = 0; i < polygonCoords[polygon].length; i++) {
+            arr.push(new google.maps.LatLng(polygonCoords[polygon][i].lat, polygonCoords[polygon][i].lng));
         }
-        poly = new google.maps.Polygon({
-            paths: allPolygons,
-            strokeWeight: 3,
-            fillColor: polygons.generateColor(),
-            fillOpacity: 0.8,
-            zIndex: 3
-        });
-    } else {
-        for (var polygon in polygonCoords) {
-            var arr = new Array();
-            for (var i = 0; i < polygonCoords[polygon].length; i++) {
-                arr.push(new google.maps.LatLng(polygonCoords[polygon][i].lat, polygonCoords[polygon][i].lng));
-            }
-            allPolygons.push(arr);
-        }
-        poly = new google.maps.Polygon({
-            paths: allPolygons,
-            strokeWeight: 3,
-            fillColor: polygons.generateColor(),
-            fillOpacity: 0.8,
-            zIndex: 3
-        });
+        allPolygons.push(arr);
     }
+    poly = new google.maps.Polygon({
+        paths: allPolygons,
+        strokeWeight: 3,
+        fillColor: polygons.generateColor(),
+        fillOpacity: 0.8,
+        zIndex: 3
+    });
     var polygonID = 0;
     if (restoreID) {
         var is3d = computation === "Interpolated Regions";
