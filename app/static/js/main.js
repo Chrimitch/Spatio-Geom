@@ -2,7 +2,6 @@ var map;
 var polygons = {
     collection: {},
     add: function(overlay) {
-        // console.log(overlay);
         return polygons.newPolygon(overlay);
     },
     hide: function(polygon) {
@@ -35,7 +34,6 @@ var polygons = {
         var shape = poly;
         shape.type = "polygon";
         shape.path = poly.getPaths();
-        // console.log(poly.getPaths());
         shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
         shape.selected = false;
         shape.visible = true;
@@ -114,9 +112,6 @@ function initialize() {
         polygonOptions.fillColor = polygons.generateColor();
         drawingManager.set('polygonOptions', polygonOptions);
         var newID = managePolygon(polygons.add(event.overlay), "add", null);
-        // polygons.collection[newID].selected = true;
-        // showPolygonSelectBorder(newID);
-        // polygons.collection[newID].setOptions({strokeWeight: 5});
     });
 
     showEmptyRegionList();
@@ -236,7 +231,6 @@ function initialize() {
                     var features = map.data.addGeoJson(jsonContents);
                     map.data.forEach(function(feature){
                         var shapeArray = [];
-                        // console.log("New shape >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                         var geometry = feature.getGeometry();
                         var type = geometry.getType();
                         if (type === "MultiPolygon") {
@@ -252,13 +246,11 @@ function initialize() {
                             var array = [];
                             latLongArrayList.forEach(function(latLongArray){
                                 counter++;
-                                // console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                                 var cycleArray = [];
                                 latLongArray.forEachLatLng(function(latLong){
                                     var latLongDict = {};
                                     latLongDict.lat = latLong.lat();
                                     latLongDict.lng = latLong.lng();
-                                    // console.log(latLongDict);
                                     cycleArray.push(latLongDict)
                                 });
                                 if (counter % 2 === 0) {
@@ -268,8 +260,6 @@ function initialize() {
                             });
                             shapeArray.push(array);
                             for (var shape in shapeArray) {
-                                console.log("eieiooooooooo");
-                                console.log(shapeArray[shape]);
                                 generateNewPolygon(shapeArray[shape], null)
                             }
                         } else {
@@ -277,7 +267,6 @@ function initialize() {
                             var counter = 0;
                             latLongArrayList.forEach(function(latLongArray){
                                 counter++;
-                                // console.log("New LatLongArray >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
                                 var cycleArray = [];
                                 latLongArray.forEachLatLng(function(latLong){
                                     var latLongDict = {};
@@ -293,7 +282,6 @@ function initialize() {
                             generateNewPolygon(shapeArray, null)
                         }
                     });
-                    // REMOVE THE BELOW CODE TO SHOW THAT THE POLYGON WAS GENERATED SUCCESSFULLY
                     for (var j = 0; j < features.length; j++)
                         map.data.remove(features[j]);
                 };

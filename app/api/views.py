@@ -115,10 +115,6 @@ def find_intersections():
         return jsonify(
             {"success": False, "data": "Not enough regions selected"})
     if intersection:
-        print("hseg >>>>>>>>>>>>>>>>>>>>")
-        print(intersection)
-        print("coords >>>>>>>>>>>>>>>>>>")
-        print(hseg_to_coords(intersection))
         return jsonify({"success": True, "data": hseg_to_coords(intersection)})
     else:
         return jsonify(
@@ -174,7 +170,6 @@ def combine_regions():
     if union:
         session["regions"] = [region for region in session[
             "regions"] if not (region.get("selected") and region.get("visible"))]
-        print(hseg_to_coords(union))
         return jsonify({"success": True, "data": hseg_to_coords(union)})
     else:
         return jsonify(
