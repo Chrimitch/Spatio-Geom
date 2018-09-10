@@ -34,7 +34,8 @@ var polygons = {
         var shape = poly;
         shape.type = "polygon";
         shape.path = poly.getPaths();
-        shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
+        // shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
+        shape.id = polyID == 0 ? new Date().getTime() + window.performance.now() : polyID;
         shape.selected = false;
         shape.visible = true;
         shape.is3DPolygon = is3D || false;

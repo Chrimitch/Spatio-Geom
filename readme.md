@@ -55,3 +55,5 @@ The application is now running at: http://0.0.0.0:5000
 - [x] Select regions on map and hide/delete it from a context menu
 - [ ] Import regions from database
 - [x] Restore session feature
+- [ ] Fix combine region irregularity issue
+- [ ] Fix clear all regions irregularity issue
