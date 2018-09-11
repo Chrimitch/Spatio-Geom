@@ -35,7 +35,8 @@ var polygons = {
         shape.type = "polygon";
         shape.path = poly.getPaths();
         // shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
-        shape.id = polyID == 0 ? new Date().getTime() + window.performance.now() : polyID;
+        var id = parseInt(new Date().getSeconds() + "" + new Date().getMilliseconds() + "" + window.performance.now() + "" + Math.random(10000));
+        shape.id = polyID == 0 ? id : polyID;
         shape.selected = false;
         shape.visible = true;
         shape.is3DPolygon = is3D || false;
@@ -261,7 +262,7 @@ function initialize() {
                             });
                             shapeArray.push(array);
                             for (var shape in shapeArray) {
-                                generateNewPolygon(shapeArray[shape], null)
+                                generateNewPolygon(shapeArray[shape], null);
                             }
                         } else {
                             var latLongArrayList = geometry.getArray();
