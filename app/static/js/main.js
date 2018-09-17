@@ -36,7 +36,7 @@ var polygons = {
         shape.path = poly.getPaths();
         // shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
         var id = parseInt(new Date().getSeconds() + "" + new Date().getMilliseconds() + "" + window.performance.now() + "" + Math.random(10000));
-        shape.id = polyID == 0 ? id : polyID;
+        shape.id = polyID == 0 ? guid() : polyID;
         shape.selected = false;
         shape.visible = true;
         shape.is3DPolygon = is3D || false;
@@ -85,6 +85,17 @@ var polygons = {
     return color;
     }
 };
+
+function guid() {
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+    s4() + '-' + s4() + s4() + s4();
+}
+
+function s4() {
+  return Math.floor((1 + Math.random()) * 0x10000)
+    .toString(16)
+    .substring(1);
+}
 
 function initialize() {
     var mapProp = {
