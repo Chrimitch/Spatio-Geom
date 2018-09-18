@@ -9,10 +9,10 @@
     </div>
 </div>
 <div id="tabs" class="col-xs-4 col-md-3">
-    <ul class="nav nav-tabs" role="tablist">
+    <!-- <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active"><a href="#regions" aria-controls="regions" role="tab" data-toggle="tab">Regions</a></li>
         <li role="presentation"><a href="#computations" aria-controls="computations" role="tab" data-toggle="tab">Computations</a></li>
-    </ul>
+    </ul> -->
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane fade in active" id="regions">
             <div class="row" style="margin-left: 2%; margin-right: 2%;">
@@ -21,6 +21,18 @@
                 <div class="col-md-2"></div>
                 <button id="clear-regions" class="btn btn-danger col-md-5 mobile-device hidden">Clear Regions</button>
             </div>
+            <ul id="computation-list-2" style="padding-top:1%;">
+                <button id="find-intersections" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">&#8898;</button>
+                <button id="find-unions" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">&#8899;</button>
+                <button id="find-differences" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">/</button>
+                <button id="interpolate-regions" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">IP</button>
+                <div class="group-from">
+                    <input type="text" id="start-time" class="form-control" placeholder="ex: 1">
+                </div>
+                <div class="group-from">
+                    <input type="text" id="end-time" class="form-control" placeholder="ex: 15">
+                </div>
+            </ul>
             <ul id="region-list" class="list-group">
             </ul>
             <div class="row" style="margin-left: 2%; margin-right: 2%; display: flex; align-items: center; justify-content: center;">
@@ -30,7 +42,7 @@
 {#                <button id="add-regions" class="btn btn-primary col-md-5 mobile-device">Add Regions</button>#}
 {#            </div>#}
         </div>
-        <div role="tabpanel" class="tab-pane fade" id="computations">
+        <!-- <div role="tabpanel" class="tab-pane fade" id="computations">
             <ul id="computation-list" class="list-group">
                 <div class="row list-group-item">
                     <div class="col-md-10">
@@ -74,7 +86,7 @@
                     <button id="interpolate-regions" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">Go</button>
                 </div>
             </ul>
-        </div>
+        </div> -->
     </div>
 </div>
 <div id="custom-menu" class='container hidden' style="max-width: 160px;">
