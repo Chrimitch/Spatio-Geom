@@ -15,7 +15,7 @@
     </ul>
     <div class="tab-content">
         <div role="tabpanel" class="tab-pane fade in active" id="regions">
-            <div class="row" style="margin-left: 2%; margin-right: 2%;">
+            <div class="row" style="margin-left: 2%; margin-right: 2%; margin-top: 2%">
                 <label for="import-regions" class="btn btn-default col-md-5 mobile-device">Import Regions</label>
                 <input id="import-regions" type="file" multiple />
                 <div class="col-md-2"></div>
@@ -35,28 +35,28 @@
                 <div class="row list-group-item">
                     <div class="col-md-10">
                         <h4>Find Intersections</h4>
-                        Find common intersections amoung the shown regions.
+                        Find common intersections among the selected regions.
                     </div>
                     <button id="find-intersections" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">Go</button>
                 </div>
                 <div class="row list-group-item">
                     <div class="col-md-10">
                         <h4>Find Unions</h4>
-                        Creates a region that combines all shown regions.
+                        Creates a region that combines all selected regions.
                     </div>
                     <button id="find-unions" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">Go</button>
                 </div>
                 <div class="row list-group-item">
                     <div class="col-md-10">
                         <h4>Find Differences</h4>
-                        Creates a region that combines all shown regions.
+                        Creates a region of disjunctive union all selected regions.
                     </div>
                     <button id="find-differences" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">Go</button>
                 </div>
                 <div class="row list-group-item">
                     <div class="col-md-10">
                         <h4>Interpolate Regions</h4>
-                        <p> Interpolates two polygons over a span of time. The larger the time interval the more iterations.</p>
+                        <p> Interpolates two selected polygons over a span of time. The larger the time interval the more iterations.</p>
                         <p>Enter a time interval: </p>
                         <div class="col-md-1 col-xs-1"></div>
                         <div class="col-md-8 col-cs-8">
@@ -83,4 +83,5 @@
     <div class="btn btn-default" data-action="hide">Hide</div>
     <div class="btn btn-danger" data-action="delete">Delete</div>
 </div>
+
 {% endblock %}

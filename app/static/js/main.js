@@ -35,7 +35,6 @@ var polygons = {
         shape.type = "polygon";
         shape.path = poly.getPaths();
         // shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
-        var id = parseInt(new Date().getSeconds() + "" + new Date().getMilliseconds() + "" + window.performance.now() + "" + Math.random(10000));
         shape.id = polyID == 0 ? guid() : polyID;
         shape.selected = false;
         shape.visible = true;
@@ -380,7 +379,7 @@ function addPolygonToList(polygonID, computation) {
         $("#region-list").append(
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
                 .attr("style", "margin: 1%; background-color: " + fillColor + ";")
-                .append($("<h4>").attr("style", "padding-bottom: 5%;").text("Region ID: " + polygonID + compName))
+                .append($("<h4>").attr("style", "padding-bottom: 5%;").text("ID: " + polygonID + compName))
                 .append($("<input>").attr("type", "checkbox").attr("id", "checkbox-" + polygonID).attr("class", "ignore-click"))
                 .append($("<label>").attr("for", "checkbox-" + polygonID).attr("class", "ignore-click").text(" Only create one region"))
                 .append($("<input>").attr("type", "range").attr("id", "slider-" + polygonID).attr("class", "form-control ignore-click").attr("min", polygon.startTime).attr("max", polygon.endTime).attr("value", polygon.startTime))
@@ -396,7 +395,7 @@ function addPolygonToList(polygonID, computation) {
         $("#region-list").append(
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
                 .attr("style", "margin: 1%; background-color: " + fillColor + ";")
-                .append($("<h4>").attr("style", "padding-bottom: 5%;").text("Region ID: " + polygonID + compName))
+                .append($("<h4>").attr("style", "padding-bottom: 5%;").text("ID: " + polygonID + compName))
                 .append($("<input style='position: absolute; top: 0; right: 1%;' type='checkbox' disabled='disabled'>").attr("id", "checkbox-" + polygonID))
                 .append($("<button>").attr("id", "show-hide-" + polygonID).attr("class", "btn btn-default col-md-5 mobile-device ignore-click").attr("style", "padding-bottom: 1%").text("Hide"))
                 .append($("<div>").attr("class", "col-md-2"))
