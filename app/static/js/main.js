@@ -161,6 +161,9 @@ function initialize() {
         });
     });
     $('#interpolate-regions').click(function() {
+        $('#interpolate-inputs-1').addClass("hidden");
+        $('#interpolate-inputs-2').addClass("hidden");
+        $('#interpolate-inputs-3').addClass("hidden");
         var startTime = $("#start-time").val();
         var endTime = $("#end-time").val();
         data = JSON.stringify(
@@ -295,6 +298,11 @@ function initialize() {
             return false;
         }
     });
+    $("#interpolate-regions-open").click( function(e) {
+        $('#interpolate-inputs-1').removeClass("hidden");
+        $('#interpolate-inputs-2').removeClass("hidden");
+        $('#interpolate-inputs-3').removeClass("hidden");
+    });
 }
 
 function managePolygon(polygonID, action, computation) {
@@ -368,14 +376,14 @@ function addPolygonToList(polygonID, computation) {
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
                 .attr("style", "margin: 1%; background-color: " + fillColor + ";")
                 .append($("<h4>").attr("style", "padding-bottom: 5%;").text("Region ID: " + polygonID + compName))
-                .append($("<input>").attr("type", "checkbox").attr("id", "checkbox-" + polygonID).attr("class", "ignore-click"))
+                .append($("<input>").attr("type", "checkbox").attr("id", "checkbox-" + polygonID).attr("class", "ignore-click").prop('checked', true))
                 .append($("<label>").attr("for", "checkbox-" + polygonID).attr("class", "ignore-click").text(" Only create one region"))
                 .append($("<input>").attr("type", "range").attr("id", "slider-" + polygonID).attr("class", "form-control ignore-click").attr("min", polygon.startTime).attr("max", polygon.endTime).attr("value", polygon.startTime))
                 .append($("<button>").attr("id", "show-hide-" + polygonID).attr("class", "btn btn-default col-md-5 mobile-device ignore-click").attr("style", "padding-bottom: 1%").text("Hide"))
                 .append($("<div>").attr("class", "col-md-2"))
                 .append($("<button>").attr("id", "delete-" + polygonID).attr("class", "btn btn-danger col-md-5 mobile-device ignore-click").text("Delete"))
         );
-        bindInterpolatedChange(polygonID, false);
+        bindInterpolatedChange(polygonID, true);
         $("#checkbox-" + polygonID).click(function() {
             bindInterpolatedChange(polygonID, $(this).is(':checked'));
         });
@@ -444,13 +452,14 @@ function bindInterpolatedChange(polygonID, checked) {
             });
         });
     } else {
-        $("#slider-" + polygonID).unbind().change(function(e) {
+        $("#slider-" + polygonID).unbind().on("input", function(e) {
             data = JSON.stringify(
                 {
                     "time" : e.target.value,
                     "polygonID" : polygonID
                 }
             );
+            console.log(e.target.value);
             $.ajax({
                 type: "POST",
                 url: "/api/find_region_at_time",

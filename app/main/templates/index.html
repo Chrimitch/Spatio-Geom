@@ -21,18 +21,32 @@
                 <div class="col-md-2"></div>
                 <button id="clear-regions" class="btn btn-danger col-md-5 mobile-device hidden">Clear Regions</button>
             </div>
-            <ul id="computation-list-2" style="padding-top:1%;">
-                <button id="find-intersections" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">&#8898;</button>
-                <button id="find-unions" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">&#8899;</button>
-                <button id="find-differences" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">/</button>
-                <button id="interpolate-regions" class="btn btn-default pull-right col-md-2" style="margin-right: 0.5%;">IP</button>
-                <div class="group-from">
-                    <input type="text" id="start-time" class="form-control" placeholder="ex: 1">
-                </div>
-                <div class="group-from">
-                    <input type="text" id="end-time" class="form-control" placeholder="ex: 15">
-                </div>
-            </ul>
+            <table id="computation-list-2" class="table" style="padding-top:1%;">
+                <tr>
+                    <td class="col-md-2"><button id="find-intersections" class="btn btn-default" style="margin-right: 0.5%; width:100%;">&#8898;</button></td>
+                    <td class="col-md-2"><button id="find-unions" class="btn btn-default" style="margin-right: 0.5%; width:100%;">&#8899;</button></td>
+                    <td class="col-md-2"><button id="find-differences" class="btn btn-default" style="margin-right: 0.5%; width:100%;">/</button></td>
+                    <td class="col-md-2"><button id="interpolate-regions-open" class="btn btn-default" style="margin-right: 0.5%; width:100%;">IP</button></td>
+                </tr>
+                <tr id="interpolate-inputs-1" class="hidden">
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"><input type="text" id="start-time" class="form-control" placeholder="ex: 1"></td>
+                </tr>
+                <tr id="interpolate-inputs-2" class="hidden">
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"><input type="text" id="end-time" class="form-control" placeholder="ex: 15"></td>
+                </tr>
+                <tr id="interpolate-inputs-3" class="hidden">
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"></td>
+                    <td class="col-md-2"><button id="interpolate-regions" class="btn btn-default interpolated-regions-close" style="margin-right: 0.5%; width:100%;">Go</button></td>
+                </tr>
+            </table>
             <ul id="region-list" class="list-group">
             </ul>
             <div class="row" style="margin-left: 2%; margin-right: 2%; display: flex; align-items: center; justify-content: center;">
