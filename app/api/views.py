@@ -35,11 +35,13 @@ def manage_region():
         session["regions"].append(region)
     elif data.get("action") == "visible":
         for region in session["regions"]:
-            if region.get("id") == int(data.get("id")):
+            # if region.get("id") == int(data.get("id")):
+            if region.get("id") == data.get("id"):
                 region["visible"] = not region["visible"]
     elif data.get("action") == "select":
         for region in session["regions"]:
-            if region.get("id") == int(data.get("id")):
+            # if region.get("id") == int(data.get("id")):
+            if region.get("id") == data.get("id"):
                 region["selected"] = not region["selected"]
                 if not session.get("selected_regions"):
                     session["selected_regions"] = []
@@ -49,10 +51,14 @@ def manage_region():
                     session["selected_regions"].remove(region)
 
     else:
+        # session["regions"] = [region for region in session[
+        #     "regions"] if region.get("id") != int(data.get("id"))]
+        # session["selected_regions"] = [region for region in session[
+        #     "selected_regions"] if region.get("id") != int(data.get("id"))]
         session["regions"] = [region for region in session[
-            "regions"] if region.get("id") != int(data.get("id"))]
+            "regions"] if region.get("id") != data.get("id")]
         session["selected_regions"] = [region for region in session[
-            "selected_regions"] if region.get("id") != int(data.get("id"))]
+            "selected_regions"] if region.get("id") != data.get("id")]
     return jsonify({"success": True})
 
 
@@ -273,8 +279,10 @@ def find_region_at_time():
     data = json.loads(request.form.get("data"))
     time = data.get("time")
     polygon_id = data.get("polygonID")
+    # region = [region for region in session[
+    #     "regions"] if (region.get("id") == int(polygon_id))]
     region = [region for region in session[
-        "regions"] if (region.get("id") == int(polygon_id))]
+        "regions"] if (region.get("id") == polygon_id)]
     interval_region = region[0]["interval_region"]
     valid_interval_region = None
     for max_time in interval_region:
