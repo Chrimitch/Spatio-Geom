@@ -190,12 +190,17 @@ def hseg_to_coords(hseg, is_difference=None):
     """
     cycle_dict = {}
     # Sets up the cycle_dict to have dictionary for each cycle and its segments
+    cycle_start_dict = {}
     for seg in hseg:
         key = seg[1]
         # -1 is not a unique label for segment
         if key == -1:
             key = seg[2]
         if key not in cycle_dict:
+            if key == seg[2]:
+                cycle_start_dict[key] = seg[0][1]
+            else:
+              cycle_start_dict[key] = seg[0][0]
             cycle_dict[key] = {}
         # The starting point of the hseg will be the key for its line segments.
         if seg[0][0] not in cycle_dict[key]:
@@ -211,8 +216,8 @@ def hseg_to_coords(hseg, is_difference=None):
         for cord in cycle_dict[cycle_label]:
             # Checks to see if it is the first itteration of the loop.
             if curr_cord is None:
-                next_cord = cord
-                curr_cord = cord
+                next_cord = cycle_start_dict[cycle_label]
+                curr_cord = cycle_start_dict[cycle_label]
             else:
                 next_cord = cycle_dict[cycle_label][curr_cord][0]
             # If we already discovered this line segment then it will be in
