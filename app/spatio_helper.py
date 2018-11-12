@@ -119,7 +119,7 @@ def process_interpolate_regions(regions, start_time, end_time):
     for other_region in regions[1:]:
         region = interval_region_logic.interpolateRegions(
             region, other_region.get("region"),
-            float(start_time), float(end_time))
+            float(start_time), float(end_time), True)
         # If region is not empty, then there was a well-formed difference.
         if not region:
             return []

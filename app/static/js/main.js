@@ -1,7 +1,8 @@
+var playallSpeed = 2;
 var map;
 var polygons = {
     collection: {},
-    IPPolys: [],
+    IPPolys: {},
     add: function(overlay) {
         return polygons.newPolygon(overlay);
     },
@@ -39,8 +40,9 @@ var polygons = {
         shape.id = polyID == 0 ? guid() : polyID;
         shape.selected = false;
         shape.visible = true;
-        shape.is3DPolygon = is3D || false;
+        shape.is3DPolygon = false;
         if (is3D) {
+            shape.is3DPolygon = true;
             shape.startTime = start;
             shape.endTime = end;
             shape.interpolatedRegionID = 0;
@@ -333,6 +335,13 @@ function managePolygon(polygonID, action, computation) {
         );
         addPolygonToList(polygonID, computation);
     } else if (action === "delete") {
+        if(polygons.IPPolys[polygonID]) { delete polygons.IPPolys[polygonID]; }
+        if(Object.keys(polygons.IPPolys).length < 2) {
+            $("#play-all-IPs").addClass("hidden");
+            $("#stop-all-IPs").addClass("hidden");
+            $("#play-all-speed").addClass("hidden");
+            unbindPlayAllFunctions();
+        }
         data = JSON.stringify(
             {
                "id": polygonID,
@@ -388,12 +397,13 @@ function addPolygonToList(polygonID, computation) {
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
                 .attr("style", "margin: 1%; background-color: " + fillColor + ";")
                 .append($("<h4>").attr("style", "padding-bottom: 5%;").text("Region ID: " + polygonID + compName))
+                .append($("<input style='position: absolute; top: 0; right: 1%;' type='checkbox' disabled='disabled'>").attr("id", "checkbox-" + polygonID))
                 .append($("<div>").attr("class", "controls-div")
                     .append($("<div>").attr("class", "").attr("style", "float: left; width: 50%;")
-                        .append($("<input>").attr("type", "checkbox").attr("id", "checkbox-" + polygonID).attr("class", "ignore-click").prop('checked', true))
-                        .append($("<label>").attr("for", "checkbox-" + polygonID).attr("class", "ignore-click").text(" Only create one region "))
+                        .append($("<input>").attr("type", "checkbox").attr("id", "slider-" + polygonID + "-checkbox").attr("class", "ignore-click").prop('checked', true))
+                        .append($("<label>").attr("for", "slider-" + polygonID + "-checkbox").attr("class", "ignore-click").text(" Only create one region "))
                         .append($("<input>").attr("type", "checkbox").attr("id", "slider-" + polygonID + "-loop").attr("class", "ignore-click").prop('checked', false))
-                        .append($("<label>").attr("for", "slider-" + polygonID + "-loop").attr("class", "ignore-click").text(" Loop"))
+                        .append($("<label>").attr("for", "slider-" + polygonID + "-loop").attr("class", "ignore-click").text(" Loop "))
                     )
                     .append($("<div>").attr("class", "").attr("style", "float: right; width: 50%;")
                         .append($("<button>").attr("id", "slider-" + polygonID + "-stop")
@@ -419,10 +429,16 @@ function addPolygonToList(polygonID, computation) {
         );
         bindInterpolatedChange(polygonID, true);
         bindPlayFunctions(polygonID);
-        $("#checkbox-" + polygonID).click(function() {
+        $("#slider-" + polygonID + "-checkbox").click(function() {
             bindInterpolatedChange(polygonID, $(this).is(':checked'));
         });
-        polygons.IPPolys.push(polygonID);
+        polygons.IPPolys[polygonID] = polygonID;
+        if(Object.keys(polygons.IPPolys).length >= 2) {
+            $("#play-all-IPs").removeClass("hidden");
+            $("#stop-all-IPs").removeClass("hidden");
+            $("#play-all-speed").removeClass("hidden");
+            bindPlayAllFunctions();
+        }
     } else {
         $("#region-list").append(
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
@@ -451,14 +467,43 @@ function addPolygonToList(polygonID, computation) {
    })
 }
 
+function unbindPlayAllFunctions() {
+    var playAll = $("#play-all-IPs").unbind();
+    var stopAll = $("#stop-all-IPs").unbind();
+}
+
+function bindPlayAllFunctions() {
+    var playAll = $("#play-all-IPs").unbind();
+    var stopAll = $("#stop-all-IPs").unbind();
+    var playAllSpeed = $("#play-all-speed").unbind();
+
+    var speed = 2;
+
+    playAll.on("click", function() {
+        speed = playAllSpeed.val();
+        // Set playallSpeed if it has been changed
+        if(speed < 0.25 && speed > 0) { playallSpeed = 0.25; }
+        else if(speed > 4) { playallSpeed = 4; }
+        else if(speed == 0) { playallSpeed = 0; }
+        else { playallSpeed = speed; }
+        for(var i in polygons.IPPolys) {
+            $("#slider-" + i + "-play").click();
+        }
+    });
+
+    stopAll.on("click", function() {
+      for(var i in polygons.IPPolys) {
+          $("#slider-" + i + "-stop").click();
+      }
+    });
+}
+
 function bindPlayFunctions(polygonID) {
     var slider = $("#slider-" + polygonID);
     var play = $("#slider-" + polygonID + "-play").unbind();
     var pause = $("#slider-" + polygonID + "-pause").unbind();
     var stop = $("#slider-" + polygonID + "-stop").unbind();
-    var checkbox = $("#checkbox-" + polygonID);
-    var playAll = $("#play-all-IPs").unbind();
-    var stopAll = $("#stop-all-IPs").unbind();
+    var checkbox = $("#slider-" + polygonID + "-checkbox");
     var playSpeed = $("#slider-" + polygonID + "-speed");
     var loopCheckbox = $("#slider-" + polygonID + "-loop");
 
@@ -468,7 +513,6 @@ function bindPlayFunctions(polygonID) {
     var currTime = 0;
     var stopFlag = false;
     var pauseFlag = false;
-    var stopAllFlag = false;
     var loopFlag = true;
     var speed = 2;
 
@@ -478,8 +522,10 @@ function bindPlayFunctions(polygonID) {
         pauseFlag = false;
         loopFlag = loopCheckbox.is(":checked");
         speed = Number(playSpeed.val());
-        if(speed < 0.25) { speed = 0.25; }
+        if(speed < 0.25 && speed > 0) { speed = 0.25; }
         else if(speed > 4) { speed = 4; }
+        else if(speed == 0 && playallSpeed == 0) { speed = 2; }
+        else if(playallSpeed > 0) { speed = playallSpeed; } // If playallSpeed is set, then use it
         var play = setInterval(function() {
             if( (currTime >= maxTime+1 && !loopFlag) || stopFlag === true) {
                 clearInterval(play);
@@ -534,7 +580,6 @@ function bindPlayFunctions(polygonID) {
                         "polygonID" : polygonID
                     }
                 );
-                console.log(e.target.value);
                 $.ajax({
                     type: "POST",
                     url: "/api/find_region_at_time",
@@ -559,16 +604,6 @@ function bindPlayFunctions(polygonID) {
 
     stop.on("click", function() {
         stopFlag = true;
-    });
-
-    //TODO: Uh. Can we have more than IP poly at a time?
-    playAll.on("click", function() {
-
-    });
-
-    //TODO: See above todo..?
-    stopAll.on("click", function() {
-        stopAllFlag = true;
     });
 }
 
