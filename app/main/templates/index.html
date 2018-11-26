@@ -28,17 +28,17 @@
                     <td class="col-md-2"><button id="find-differences" class="btn btn-default" style="margin-right: 0.5%; width:100%;">/</button></td>
                     <td class="col-md-2"><button id="interpolate-regions-open" class="btn btn-default" style="margin-right: 0.5%; width:100%;">IP</button></td>
                 </tr>
-                <tr id="interpolate-inputs-1" class="hidden">
-                    <td class="col-md-2"></td>
-                    <td class="col-md-2"></td>
-                    <td class="col-md-2"></td>
-                    <td class="col-md-2"><input type="text" id="start-time" class="form-control" placeholder="ex: 1"></td>
+                <tr id="interpolate-inputs-1">
+                    <td class="col-md-2"><input id="play-all-speed" class="form-control hidden" style="margin-right: 0.5%; width: 100%; text-align: center;" type="number" placeholder="Speed" step="0.25" min="0" max="4"></input></td>
+                    <td class="col-md-2"><button id="play-all-IPs" class="btn btn-default hidden" style="margin-right: 0.5%; width: 100%">Play All</button></td>
+                    <td class="col-md-2"><button id="stop-all-IPs" class="btn btn-default hidden" style="margin-right: 0.5%; width: 100%">Stop All</button></td>
+                    <td class="col-md-2"><input type="text" id="start-time" class="form-control hidden" placeholder="ex: 1"></td>
                 </tr>
                 <tr id="interpolate-inputs-2" class="hidden">
-                    <td class="col-md-2"></td>
-                    <td class="col-md-2"></td>
-                    <td class="col-md-2"></td>
-                    <td class="col-md-2"><input type="text" id="end-time" class="form-control" placeholder="ex: 15"></td>
+                    <td class="col-md-2" class="hidden"></td>
+                    <td class="col-md-2" class="hidden"></td>
+                    <td class="col-md-2" class="hidden"></td>
+                    <td class="col-md-2"><input type="text" id="end-time" class="form-control hidden" placeholder="ex: 15"></td>
                 </tr>
                 <tr id="interpolate-inputs-3" class="hidden">
                     <td class="col-md-2"></td>
