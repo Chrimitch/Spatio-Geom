@@ -268,6 +268,7 @@ def find_interpolated_regions():
         regions[1]["region"] = process_polygons(paths)
         regions[0]["computation"] = "Interpolated Regions"
         regions[1]["computation"] = "Interpolated Regions"
+        session["selected_regions"] = []
         return jsonify({"success": True, "data": segments})
     else:
         return jsonify(

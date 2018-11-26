@@ -1,6 +1,8 @@
+var playallSpeed = 2;
 var map;
 var polygons = {
     collection: {},
+    IPPolys: {},
     add: function(overlay) {
         return polygons.newPolygon(overlay);
     },
@@ -38,8 +40,9 @@ var polygons = {
         shape.id = polyID == 0 ? guid() : polyID;
         shape.selected = false;
         shape.visible = true;
-        shape.is3DPolygon = is3D || false;
+        shape.is3DPolygon = false;
         if (is3D) {
+            shape.is3DPolygon = true;
             shape.startTime = start;
             shape.endTime = end;
             shape.interpolatedRegionID = 0;
@@ -86,14 +89,12 @@ var polygons = {
 };
 
 function guid() {
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-    s4() + '-' + s4() + s4() + s4();
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+      s4() + '-' + s4() + s4() + s4();
 }
 
 function s4() {
-  return Math.floor((1 + Math.random()) * 0x10000)
-    .toString(16)
-    .substring(1);
+    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 }
 
 function initialize() {
@@ -173,7 +174,7 @@ function initialize() {
         });
     });
     $('#interpolate-regions').click(function() {
-        $('#interpolate-inputs-1').addClass("hidden");
+        $('#start-time').addClass("hidden");
         $('#interpolate-inputs-2').addClass("hidden");
         $('#interpolate-inputs-3').addClass("hidden");
         var startTime = $("#start-time").val();
@@ -311,8 +312,9 @@ function initialize() {
         }
     });
     $("#interpolate-regions-open").click( function(e) {
-        $('#interpolate-inputs-1').removeClass("hidden");
+        $('#start-time').removeClass("hidden");
         $('#interpolate-inputs-2').removeClass("hidden");
+        $('#end-time').removeClass("hidden");
         $('#interpolate-inputs-3').removeClass("hidden");
     });
 }
@@ -333,6 +335,13 @@ function managePolygon(polygonID, action, computation) {
         );
         addPolygonToList(polygonID, computation);
     } else if (action === "delete") {
+        if(polygons.IPPolys[polygonID]) { delete polygons.IPPolys[polygonID]; }
+        if(Object.keys(polygons.IPPolys).length < 2) {
+            $("#play-all-IPs").addClass("hidden");
+            $("#stop-all-IPs").addClass("hidden");
+            $("#play-all-speed").addClass("hidden");
+            unbindPlayAllFunctions();
+        }
         data = JSON.stringify(
             {
                "id": polygonID,
@@ -388,17 +397,48 @@ function addPolygonToList(polygonID, computation) {
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
                 .attr("style", "margin: 1%; background-color: " + fillColor + ";")
                 .append($("<h4>").attr("style", "padding-bottom: 5%;").text("Region ID: " + polygonID + compName))
-                .append($("<input>").attr("type", "checkbox").attr("id", "checkbox-" + polygonID).attr("class", "ignore-click").prop('checked', true))
-                .append($("<label>").attr("for", "checkbox-" + polygonID).attr("class", "ignore-click").text(" Only create one region"))
-                .append($("<input>").attr("type", "range").attr("id", "slider-" + polygonID).attr("class", "form-control ignore-click").attr("min", polygon.startTime).attr("max", polygon.endTime).attr("value", polygon.startTime))
-                .append($("<button>").attr("id", "show-hide-" + polygonID).attr("class", "btn btn-default col-md-5 mobile-device ignore-click").attr("style", "padding-bottom: 1%").text("Hide"))
+                .append($("<input style='position: absolute; top: 0; right: 1%;' type='checkbox' disabled='disabled'>").attr("id", "checkbox-" + polygonID))
+                .append($("<div>").attr("class", "controls-div")
+                    .append($("<div>").attr("class", "").attr("style", "float: left; width: 50%;")
+                        .append($("<input>").attr("type", "checkbox").attr("id", "slider-" + polygonID + "-checkbox").attr("class", "ignore-click").prop('checked', true))
+                        .append($("<label>").attr("for", "slider-" + polygonID + "-checkbox").attr("class", "ignore-click").text(" Only create one region "))
+                        .append($("<input>").attr("type", "checkbox").attr("id", "slider-" + polygonID + "-loop").attr("class", "ignore-click").prop('checked', false))
+                        .append($("<label>").attr("for", "slider-" + polygonID + "-loop").attr("class", "ignore-click").text(" Loop "))
+                    )
+                    .append($("<div>").attr("class", "").attr("style", "float: right; width: 50%;")
+                        .append($("<button>").attr("id", "slider-" + polygonID + "-stop")
+                                             .attr("class", "btn glyphicon glyphicon-stop ignore-click")
+                                             .attr("style", "float: right; display: inline; margin: 0.5%; width: 15%;"))
+                        .append($("<button>").attr("id", "slider-" + polygonID + "-pause")
+                                             .attr("class", "btn glyphicon glyphicon-pause ignore-click")
+                                             .attr("style", "float: right; display: inline; margin: 0.5%; width: 15%;"))
+                        .append($("<button>").attr("id", "slider-" + polygonID + "-play")
+                                             .attr("class", "btn glyphicon glyphicon-play ignore-click")
+                                             .attr("style", "float: right; display: inline; margin: 0.5%; width: 15%;"))
+                        .append($("<input>").attr("id","slider-" + polygonID + "-speed")
+                                            .attr("class", "form-control ignore-click")
+                                            .attr("type", "number").attr("placeholder", "Speed")
+                                            .attr("step","0.25").attr("min", "0.25").attr("max", "4")
+                                            .attr("style", "float: right; display: inline; margin: 0.5%; width: 40%; text-align: center;"))
+                    )
+                )
+                .append($("<input>").attr("type", "range").attr("id", "slider-" + polygonID).attr("class", "form-control ignore-click").attr("min", polygon.startTime).attr("max", polygon.endTime).attr("value", polygon.startTime).attr("style", "margin-bottom: 1%;"))
+                .append($("<button>").attr("id", "show-hide-" + polygonID).attr("class", "btn btn-default col-md-5 mobile-device ignore-click").attr("style", "padding-bottom: 1%;").text("Hide"))
                 .append($("<div>").attr("class", "col-md-2"))
                 .append($("<button>").attr("id", "delete-" + polygonID).attr("class", "btn btn-danger col-md-5 mobile-device ignore-click").text("Delete"))
         );
         bindInterpolatedChange(polygonID, true);
-        $("#checkbox-" + polygonID).click(function() {
+        bindPlayFunctions(polygonID);
+        $("#slider-" + polygonID + "-checkbox").click(function() {
             bindInterpolatedChange(polygonID, $(this).is(':checked'));
         });
+        polygons.IPPolys[polygonID] = polygonID;
+        if(Object.keys(polygons.IPPolys).length >= 2) {
+            $("#play-all-IPs").removeClass("hidden");
+            $("#stop-all-IPs").removeClass("hidden");
+            $("#play-all-speed").removeClass("hidden");
+            bindPlayAllFunctions();
+        }
     } else {
         $("#region-list").append(
             $("<li>").attr("id", polygonID).attr("class", "list-group-item row")
@@ -425,6 +465,146 @@ function addPolygonToList(polygonID, computation) {
         if (!$(e.target).hasClass("ignore-click"))
             handlePolygonSelect(polygonID);
    })
+}
+
+function unbindPlayAllFunctions() {
+    var playAll = $("#play-all-IPs").unbind();
+    var stopAll = $("#stop-all-IPs").unbind();
+}
+
+function bindPlayAllFunctions() {
+    var playAll = $("#play-all-IPs").unbind();
+    var stopAll = $("#stop-all-IPs").unbind();
+    var playAllSpeed = $("#play-all-speed").unbind();
+
+    var speed = 2;
+
+    playAll.on("click", function() {
+        speed = playAllSpeed.val();
+        // Set playallSpeed if it has been changed
+        if(speed < 0.25 && speed > 0) { playallSpeed = 0.25; }
+        else if(speed > 4) { playallSpeed = 4; }
+        else if(speed == 0) { playallSpeed = 0; }
+        else { playallSpeed = speed; }
+        for(var i in polygons.IPPolys) {
+            $("#slider-" + i + "-play").click();
+        }
+    });
+
+    stopAll.on("click", function() {
+      for(var i in polygons.IPPolys) {
+          $("#slider-" + i + "-stop").click();
+      }
+    });
+}
+
+function bindPlayFunctions(polygonID) {
+    var slider = $("#slider-" + polygonID);
+    var play = $("#slider-" + polygonID + "-play").unbind();
+    var pause = $("#slider-" + polygonID + "-pause").unbind();
+    var stop = $("#slider-" + polygonID + "-stop").unbind();
+    var checkbox = $("#slider-" + polygonID + "-checkbox");
+    var playSpeed = $("#slider-" + polygonID + "-speed");
+    var loopCheckbox = $("#slider-" + polygonID + "-loop");
+
+    var step = 1
+    var minTime = Number(slider.attr("min"));
+    var maxTime = Number(slider.attr("max"));
+    var currTime = 0;
+    var stopFlag = false;
+    var pauseFlag = false;
+    var loopFlag = true;
+    var speed = 2;
+
+    play.on("click", function() {
+        currTime = Number(slider.val());
+        stopFlag = false;
+        pauseFlag = false;
+        loopFlag = loopCheckbox.is(":checked");
+        speed = Number(playSpeed.val());
+        if(speed < 0.25 && speed > 0) { speed = 0.25; }
+        else if(speed > 4) { speed = 4; }
+        else if(speed == 0 && playallSpeed == 0) { speed = 2; }
+        else if(playallSpeed > 0) { speed = playallSpeed; } // If playallSpeed is set, then use it
+        var play = setInterval(function() {
+            if( (currTime >= maxTime+1 && !loopFlag) || stopFlag === true) {
+                clearInterval(play);
+                currTime = minTime;
+                slider.prop("value", currTime);
+                return;
+            }
+            else if(pauseFlag === true) {
+                clearInterval(play);
+                return;
+            }
+            else if(currTime >= maxTime+1 && loopFlag) {
+                currTime = minTime;
+                slider.prop("value", currTime);
+            }
+            if (checkbox.is(":checked")) {
+                data = JSON.stringify(
+                    {
+                        "time" : currTime,
+                        "polygonID" : polygonID
+                    }
+                );
+                var polygon = polygons.collection[polygonID];
+                if (polygon.interpolatedRegionID !== 0) {
+                    var button = "#delete-" + polygon.interpolatedRegionID;
+                    $(button).parent().remove();
+                    if (!$("#region-list").children().length) {
+                        showEmptyRegionList();
+                        $("#clear-regions").addClass("hidden");
+                    }
+                    $("#custom-menu").addClass("hidden");
+                    polygons.delete(polygons.collection[polygon.interpolatedRegionID]);
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "/api/find_region_at_time",
+                    polyID: polygonID,
+                    data: {"data": data},
+                    success: function(data) {
+                        var id = generateNewPolygon(data.data, "From Interoplated");
+                        managePolygon(polygons.collection[this.polyID].interpolatedRegionID, "delete", null);
+                        polygons.collection[this.polyID].interpolatedRegionID = id;
+                    },
+                    failure: function(data) {
+                        console.log(data);
+                    }
+                });
+            } else {
+                data = JSON.stringify(
+                    {
+                        "time" : currTime,
+                        "polygonID" : polygonID
+                    }
+                );
+                $.ajax({
+                    type: "POST",
+                    url: "/api/find_region_at_time",
+                    data: {"data": data},
+                    success: function(data) {
+                        generateNewPolygon(data.data, "From Interoplated")
+                    },
+                    failure: function(data) {
+                        console.log(data);
+                    }
+                });
+            }
+            // console.log(currTime);
+            slider.prop("value", currTime);
+            currTime += 1;
+        }, 1000/speed);
+    });
+
+    pause.on("click", function() {
+        pauseFlag = true;
+    });
+
+    stop.on("click", function() {
+        stopFlag = true;
+    });
 }
 
 function bindInterpolatedChange(polygonID, checked) {
