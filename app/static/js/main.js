@@ -1,11 +1,25 @@
-var playallSpeed = 2;
-var map;
+var playallSpeed = 2; // Global value for the default Play All Speed
+var map; // Map for the Google Map
+ /*
+  *    The main collection for the front-end functionality of the application. This
+  *    houses all of the functions for the polygons (regions on the map) such as
+  *    add, hide, show, delete, clearAll, newPolygon, and generateColor.
+  */
 var polygons = {
-    collection: {},
-    IPPolys: {},
+    collection: {}, // The list of all the polygons.
+    IPPolys: {}, // The list of only interpolated polygons. For use in playing multiple
+                 //  polygons at the same time.
+    /*
+     *    Add a new polyhon to the polygons.collection and display it on the map
+     *    on the front-end.
+     */
     add: function(overlay) {
         return polygons.newPolygon(overlay);
     },
+    /*
+     *    Hide a polygon from the application. Also removes it from a back-end
+     *    list to prevent interacting with the incorrect functions.
+     */
     hide: function(polygon) {
         polygon.visible = false;
         if (polygon.selected) {
@@ -15,14 +29,23 @@ var polygons = {
         }
         polygon.setMap(null);
     },
+    /*
+     *    Opposite of hide. Reveals the polygon.
+     */
     show: function(polygon) {
         polygon.visible = true;
         polygon.setMap(map);
     },
+    /*
+     *    Removes the polygon from the map and collection.
+     */
     delete: function(polygon) {
         polygon.setMap(null);
         delete this.collection[polygon.id];
     },
+    /*
+     *    Removes all the polygons in the collection at the same time.
+     */
     clearAll: function() {
         for (polygonID in this.collection) {
             managePolygon(polygonID, "delete", null);
@@ -30,17 +53,21 @@ var polygons = {
         }
         clearSession();
     },
+    /*
+     *    Generates all the relevant information to create a polygon and display
+     *    it on the map.
+     */
     newPolygon: function(poly, polyID, is3D, start, end) {
         if (polyID == null)
             polyID = 0;
         var shape = poly;
-        shape.type = "polygon";
-        shape.path = poly.getPaths();
-        // shape.id = polyID == 0 ? new Date().getTime() + Math.floor(Math.random() * 1000) : polyID;
-        shape.id = polyID == 0 ? guid() : polyID;
-        shape.selected = false;
-        shape.visible = true;
-        shape.is3DPolygon = false;
+        shape.type = "polygon"; // Tyope of shape is a polygon (any number of sides or any kind of geometric shape)
+        shape.path = poly.getPaths(); // Paths to paint the border of the polygon
+        shape.id = polyID == 0 ? guid() : polyID; // Generate a unique ID
+        shape.selected = false; // Default selected value
+        shape.visible = true; // Default visible
+        shape.is3DPolygon = false; // Default not 3D Polygon
+        // Interpolated values
         if (is3D) {
             shape.is3DPolygon = true;
             shape.startTime = start;
@@ -57,6 +84,9 @@ var polygons = {
         shape.setMap(map);
         return shape.id;
     },
+    /*
+     *    Generate a "random" hex color to assign to the polygon region
+     */
     generateColor: function(e) {
         var color = "#";
         for (var x = 0; x < 6; x++) {
@@ -88,28 +118,46 @@ var polygons = {
     }
 };
 
+/*
+ *    Use the s4() function to create a UUID
+ */
 function guid() {
     return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
       s4() + '-' + s4() + s4() + s4();
 }
 
+/*
+ *    Generate a 4 character long hex string
+ */
 function s4() {
     return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 }
 
+/*
+ *    Initialize the webpage, the google maps plugin and its drawing components,
+ *    and the buttons with their functionality.
+ */
 function initialize() {
+    /*
+     *    Initalize the Google Maps plugin and features such as drawing and
+     *    location on the map.
+     */
     var mapProp = {
+        // Default location for the google maps (right above Edwardsville roughly)
         center: new google.maps.LatLng(38.7931,-89.9967),
         zoom: 8,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
+    // Give the map its properties
     map = new google.maps.Map(document.getElementById("map"), mapProp);
+    // Default polygon values for their creation.
     var polyOptions = {
         fillColor : polygons.generateColor(),
         fillOpacity: .8,
         strokeWeight: 3,
         zIndex: 1
     };
+    // Values for all of the drawing functionality.
     var drawingManager = new google.maps.drawing.DrawingManager({
         drawingMode: google.maps.drawing.OverlayType.POLYGON,
         drawingControl: true,
@@ -127,7 +175,12 @@ function initialize() {
         var newID = managePolygon(polygons.add(event.overlay), "add", null);
     });
 
+    /*
+     *    Initialize the webpage now and assign functions to the computation
+     *    buttons.
+     */
     showEmptyRegionList();
+    // Ajax post to backend for intersection
     $('#find-intersections').click(function() {
         $.ajax({
             type: "POST",
@@ -143,6 +196,7 @@ function initialize() {
             }
         });
     });
+    // Ajax post to backend for union
     $('#find-unions').click(function() {
         $.ajax({
             type: "POST",
@@ -158,6 +212,7 @@ function initialize() {
             }
         });
     });
+    // Ajax post to backend for differences
     $('#find-differences').click(function() {
         $.ajax({
             type: "POST",
@@ -173,7 +228,9 @@ function initialize() {
             }
         });
     });
+    // Ajax post to backend for interpolating two regions
     $('#interpolate-regions').click(function() {
+        // Hide the inputs after clicking the button
         $('#start-time').addClass("hidden");
         $('#interpolate-inputs-2').addClass("hidden");
         $('#interpolate-inputs-3').addClass("hidden");
@@ -191,6 +248,11 @@ function initialize() {
             data: {"data": data},
             success: function(data) {
                 if (data.success) {
+                    /**
+                     *    Remove the old polygons from the list on the frontend
+                     *    only and add the new IPPoly into the list (does not
+                     *    remove from a 'selected-regions' list in the backend)
+                     */
                     var restoreID = [];
                     for (var polygon in polygons.collection) {
                         if (polygons.collection[polygon].selected) {
@@ -214,6 +276,7 @@ function initialize() {
             }
         });
     });
+    // Ajax post to backend for combining regions
     $('#combine-regions').click(function() {
         $.ajax({
             type: "POST",
@@ -229,6 +292,7 @@ function initialize() {
             }
         });
     });
+    // Delete all the regions
     $("#clear-regions").on("click", function(e) {
         polygons.clearAll();
         $("#region-list").empty();
@@ -236,6 +300,7 @@ function initialize() {
         $("#clear-regions").addClass("hidden");
         $("#combine-regions").addClass("hidden");
     });
+    // Import regions from a geojson file
     $("#import-regions").on("change", function(e) {
         var files = e.target.files;
         if (files.length) {
@@ -311,6 +376,7 @@ function initialize() {
             return false;
         }
     });
+    // Show the interpolate inputs
     $("#interpolate-regions-open").click( function(e) {
         $('#start-time').removeClass("hidden");
         $('#interpolate-inputs-2').removeClass("hidden");
@@ -319,8 +385,13 @@ function initialize() {
     });
 }
 
+/*
+ *    Generic function to handle all polygon actions. Add, delete, and select.
+ *    After getting the function, it posts it to the backend.
+ */
 function managePolygon(polygonID, action, computation) {
     var paths = new Array();
+    // Add function
     if (action === "add") {
         for (var singlePath in polygons.collection[polygonID].path.getArray()) {
             paths.push(polygons.collection[polygonID].path.getArray()[singlePath].getArray());
@@ -334,8 +405,12 @@ function managePolygon(polygonID, action, computation) {
             }
         );
         addPolygonToList(polygonID, computation);
-    } else if (action === "delete") {
+    }
+    // Delete function
+    else if (action === "delete") {
+        // If it's an IPPoly, remove it from that list.
         if(polygons.IPPolys[polygonID]) { delete polygons.IPPolys[polygonID]; }
+        // If there isn't more than one IPPoly, hide the playAll functions
         if(Object.keys(polygons.IPPolys).length < 2) {
             $("#play-all-IPs").addClass("hidden");
             $("#stop-all-IPs").addClass("hidden");
@@ -348,15 +423,18 @@ function managePolygon(polygonID, action, computation) {
                "action": action
             }
         );
-    } else if (action === "select") {
+    }
+    // Select function
+    else if (action === "select") {
         data = JSON.stringify(
             {
                "id": polygonID,
                "action": action
             }
         );
-    } else {
-        // This shouldn't happen
+    }
+    // This should never happen.
+    else {
         data = JSON.stringify(
             {
                 "id": polygonID,
@@ -364,6 +442,7 @@ function managePolygon(polygonID, action, computation) {
             }
         );
     }
+    // Post the function and data
     $.ajax({
         type: "POST",
         url: "/api/manage_region",
@@ -378,13 +457,14 @@ function managePolygon(polygonID, action, computation) {
     return polygonID;
 }
 
+/*
+ *    Removes the empty list placeholder.
+ *    Creates the card item for the region list tab. If the region is a 3D
+ *    region then it will have a slider and play buttons and utilities. Binds all
+ *    the play functions to the play buttons.
+ *    Binds click events to the buttons found on the card item.
+ */
 function addPolygonToList(polygonID, computation) {
-    /**
-    *   Removes the empty list placeholder.
-    *   Creates the card item for the region list tab. If the region is a 3D
-    *   region then it will have a slider.
-    *   Binds click events to the buttons found on the card item.
-    **/
     var fillColor = polygons.collection[polygonID].fillColor;
     var compName = "";
     if (computation) {
@@ -467,18 +547,29 @@ function addPolygonToList(polygonID, computation) {
    })
 }
 
+/*
+ *    Unbind the play all functions from the play all buttons so they cannot be
+ *    manipulated outside of being shown.
+ */
 function unbindPlayAllFunctions() {
     var playAll = $("#play-all-IPs").unbind();
     var stopAll = $("#stop-all-IPs").unbind();
 }
 
+/*
+ *    Bind all of the play all functions to their respective buttons. Also
+ *    determine the real play speed should it have been manipulated before
+ *    the click event is fired.
+ */
 function bindPlayAllFunctions() {
+    // HTML elements
     var playAll = $("#play-all-IPs").unbind();
     var stopAll = $("#stop-all-IPs").unbind();
     var playAllSpeed = $("#play-all-speed").unbind();
 
-    var speed = 2;
+    var speed = 2; // Default speed.
 
+    // Play all of the IPPolys
     playAll.on("click", function() {
         speed = playAllSpeed.val();
         // Set playallSpeed if it has been changed
@@ -486,11 +577,13 @@ function bindPlayAllFunctions() {
         else if(speed > 4) { playallSpeed = 4; }
         else if(speed == 0) { playallSpeed = 0; }
         else { playallSpeed = speed; }
+        playallSpeed = checkSpeed(speed)
         for(var i in polygons.IPPolys) {
             $("#slider-" + i + "-play").click();
         }
     });
 
+    // Stop and reset all of the IPPolys
     stopAll.on("click", function() {
       for(var i in polygons.IPPolys) {
           $("#slider-" + i + "-stop").click();
@@ -498,7 +591,16 @@ function bindPlayAllFunctions() {
     });
 }
 
+/*
+ *    Bind the play/pause/stop functions to the HTML Buttons on the polygon card.
+ *    Uses part of bindInterpolatedChange(...) to "animate" the regions as they
+ *    are drawn between the two parent regions. Loops at a speed interval that is
+ *    set and rectified to be within a preferred range. Can be paused and resumed
+ *    as neeeded as well as stopped entirely (which also resets the slider). Works
+ *    with the "create only one region" checkbox.
+ */
 function bindPlayFunctions(polygonID) {
+    // HTML Elements
     var slider = $("#slider-" + polygonID);
     var play = $("#slider-" + polygonID + "-play").unbind();
     var pause = $("#slider-" + polygonID + "-pause").unbind();
@@ -507,6 +609,7 @@ function bindPlayFunctions(polygonID) {
     var playSpeed = $("#slider-" + polygonID + "-speed");
     var loopCheckbox = $("#slider-" + polygonID + "-loop");
 
+    // Local variables
     var step = 1
     var minTime = Number(slider.attr("min"));
     var maxTime = Number(slider.attr("max"));
@@ -516,6 +619,7 @@ function bindPlayFunctions(polygonID) {
     var loopFlag = true;
     var speed = 2;
 
+    // Play function bound to the play button
     play.on("click", function() {
         currTime = Number(slider.val());
         stopFlag = false;
@@ -598,15 +702,24 @@ function bindPlayFunctions(polygonID) {
         }, 1000/speed);
     });
 
+    // Pause function bound to the pause button
     pause.on("click", function() {
         pauseFlag = true;
     });
 
+    // Stop function bound to the stop button
     stop.on("click", function() {
         stopFlag = true;
     });
 }
 
+/*
+ *    Binds functions to the slider for interpolated regions for on change or on
+ *    input given the checkbox is checked to create only one region or all regions.
+ *    If the checkbox is checked, it creates only one region at a time and removes
+ *    the previous region. Otherwise, it create all the regions between the two
+ *    parent regions.
+ */
 function bindInterpolatedChange(polygonID, checked) {
     $("#slider-" + polygonID).unbind();
     if (checked) {
@@ -667,6 +780,10 @@ function bindInterpolatedChange(polygonID, checked) {
     }
 }
 
+/*
+ *    Function used to handle whether the polygon should be selected or unselected
+ *    based on existing parameters.
+ */
 function handlePolygonSelect(polygonID) {
     if (polygons.collection[polygonID].visible) {
         polygons.collection[polygonID].selected = !polygons.collection[polygonID].selected;
@@ -684,20 +801,37 @@ function handlePolygonSelect(polygonID) {
     }
 }
 
+/*
+ *    Unselects all selected polygons with the help of a handler function
+ *    handlePolygonSelect.
+ */
 function clearPolygonSelection() {
     for (polygonID in polygons.collection) {
         handlePolygonSelect(polygonID);
     }
 }
 
+/*
+ *    One line function. Adds a thicker border around polygons showing that they
+ *    are now selected.
+ */
 function showPolygonSelectBorder(polygonID) {
     $("#" + polygonID).css({"border": "2px solid black"});
 }
 
+/*
+ *    One line function. Removes the thicker border from polygons showing that they
+ *    are no longer selected.
+ */
 function clearPolygonSelectBorder(polygonID) {
     $("#" + polygonID).css({"border": "none"});
 }
 
+/*
+ *    A function that is used to bind the delete functionality to an HTML element
+ *    without needing anything other than the button and the polygon it is related
+ *    to.
+ */
 function deletePolygonButton(button, polygon) {
     for (var polygonID in polygons.collection) {
         if (polygons.collection[polygonID].interpolatedRegionID === polygon.id) {
@@ -714,6 +848,10 @@ function deletePolygonButton(button, polygon) {
     }
 }
 
+/*
+ *    Hide or show the polygon based on the text in the button. Effectively an
+ *    on/off switch to show/hide the polygon.
+ */
 function showHidePolygonButton(button, polygon) {
     if ($(button).text() === "Hide") {
         $(button).text("Show");
@@ -725,6 +863,12 @@ function showHidePolygonButton(button, polygon) {
     managePolygon(polygon.id, "visible");
 }
 
+/*
+ *    Attempt to restore the polygons from the previous session given a refresh
+ *    or accidental browser navigation occured. Does not work perfectly every time
+ *    occasionally restoring polygons from sessions older than the immediate
+ *    previous session.
+ */
 function restoreSession() {
     $.ajax({
         type: "POST",
@@ -732,7 +876,7 @@ function restoreSession() {
         success: function(data) {
             if (data.success) {
                 // Doing a for instead of a foreach because foreach was giving
-                // the index instead of the object. No idea
+                // the index instead of the object. No idea.
                 for (i = 0; i < data.data.polygons.length; i++) {
                     generateNewPolygon(data.data.polygons[i].coords,
                                        data.data.polygons[i].computation,
@@ -747,14 +891,14 @@ function restoreSession() {
     });
 }
 
+/*
+ *    Creates a polygon from the given coords. polygonCoords is an object with
+ *    arrays. The arrays are paths to take. Think of this as sides of a shape.
+ *    restoreID is used for restoring a polygon, if it is set, not 0, then the
+ *    new polygon isn't new, it is already in the session and we know an ID to
+ *    give it. This avoids duplicate regions in session.
+ */
 function generateNewPolygon(polygonCoords, computation, restoreID, startTime, endTime) {
-    /**
-     * Creates a polygon from the given coords. polygonCoords is an object with
-     * arrays. The arrays are paths to take. Think of this as sides of a shape.
-     * restoreID is used for restoring a polygon, if it is set, not 0, then the
-     * new polygon isn't new, it is already in the session and we know an ID to
-     * give it. This avoids duplicate regions in session.
-     */
     var poly;
     var allPolygons = new Array();
     for (var polygon in polygonCoords) {
@@ -783,6 +927,10 @@ function generateNewPolygon(polygonCoords, computation, restoreID, startTime, en
     return polygonID;
 }
 
+/*
+ *    Default HTML element placed after removal of all regions or on initial load
+ *    of the webpage.
+ */
 function showEmptyRegionList() {
     $("#region-list").append(
         $("<li>").attr("id", "placeholder-empty").attr("class", "list-group-item").text(
@@ -790,6 +938,10 @@ function showEmptyRegionList() {
     );
 }
 
+/*
+ *    Hidden element management. Handles the interaction of the user and polygons.
+ *    Able to hide/show and delete polygons.
+ */
 function handleContextMenu(event, polygon) {
     // Show contextmenu
     $("#custom-menu").finish().toggle(100).css({
@@ -821,6 +973,11 @@ function handleContextMenu(event, polygon) {
       });
 }
 
+/*
+ *    Delete all of the selected polygons. Used for clearing the selected polygons
+ *    in the front end after certain functions. Also removes all of the respective
+ *    HTML elements as well.
+ */
 function deleteSelectedPolygons(){
     for (polygonID in polygons.collection) {
         if (polygons.collection[polygonID].visible) {
@@ -839,6 +996,10 @@ function deleteSelectedPolygons(){
     });
 }
 
+/*
+ *    Remove all the polygons from the session data so that they aren't restored
+ *    on the next refresh of the web page
+ */
 function clearSession() {
     $.ajax({
         type: "POST",
@@ -851,6 +1012,9 @@ function clearSession() {
     });
 }
 
+/*
+ *    Start of the webpage
+ */
 $(document).ready(function() {
     initialize();
     restoreSession();

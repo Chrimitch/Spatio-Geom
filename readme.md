@@ -55,9 +55,8 @@ The application is now running at: http://0.0.0.0:5000
 - [x] Select regions on map and hide/delete it from a context menu
 - [ ] Import regions from database
 - [x] Restore session feature
-- [ ] Fix creation of Polygons (clockwise vs counterclockwise)
-- [ ] Move computations buttons to main tab to simplify usability
-- [ ] Fix combine region irregularity issue
-- [ ] Fix clear all regions irregularity issue
+- [x] Fix creation of Polygons (clockwise vs counterclockwise)
+- [x] Move computations buttons to main tab to simplify usability
+- [x] Fix combine region irregularity issue
+- [x] Fix clear all regions irregularity issue
 - [ ] Interpolate slider live refresh
-- [ ] Backend stuff once creation of polys is fixed
